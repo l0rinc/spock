@@ -23,6 +23,42 @@ class Foo extends Specification {
     result.ignoreCount == 0
   }
 
+  def "@PendingFeature marks feature that fails with exception as skipped"() {
+    when:
+    def result = runner.runWithImports("""
+
+class Foo extends Specification {
+  @PendingFeature
+  def bar() {
+    expect:
+    throw new Exception()
+  }
+}
+    """)
+
+    then:
+    notThrown(AssertionError)
+    result.runCount == 1
+    result.failureCount == 0
+    result.ignoreCount == 0
+  }
+  def "@PendingFeature rethrows non handled exceptions"() {
+    when:
+    def result = runner.runWithImports("""
+
+class Foo extends Specification {
+  @PendingFeature(exceptions=[RuntimeException])
+  def bar() {
+    expect:
+    throw new Exception()
+  }
+}
+    """)
+
+    then:
+    thrown(Exception)
+  }
+
   def "@PendingFeature marks passing feature as failed"() {
     when:
     runner.runWithImports("""
